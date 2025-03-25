@@ -11,7 +11,7 @@ The following example demonstrates how to use different layers from the `kdl_pre
 First, install the required libraries if you haven't already:
 
 ```bash
-pip install tensorflow kdl_pre_built
+pip install tensorflow keras kdl_pre_built
 ```
 
 ---
@@ -32,7 +32,7 @@ import keras
 This example model includes the following components:
 - **Rescaling**: Normalizes image data to the [0, 1] range.
 - **GMPLPBlock**: An advanced neural network layer from `kdl_pre_built`.
-- **GlobalAveragePooling1D**: Reduces the number of parameters.
+- **Flatten**: Flattens the input before passing it to dense layers.
 - **Dropout**: Helps prevent overfitting.
 - **PolynomialDense**: A dense layer with nonlinear processing capabilities.
 - **Dense (Softmax)**: The output layer with 10 units corresponding to the 10 MNIST digits.
