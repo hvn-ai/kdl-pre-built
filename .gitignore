@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual env của Poetry
+.venv/
+
+# Thư mục build
+dist/
+build/
+
+# pytest cache
+.pytest_cache/
