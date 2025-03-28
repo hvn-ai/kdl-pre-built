@@ -7,24 +7,30 @@ from keras import layers
 @keras.saving.register_keras_serializable()
 class PolynomialDense(layers.Layer):
     def __init__(self, units, activation, extra_args={}, degree=2, epsilon=1e-4, **kwargs):
+        super().__init__(**kwargs)
         self.units = units
         self.activation = activation
         self.extra_args = extra_args
         self.degree = degree
         self.epsilon = epsilon
-        super().__init__(**kwargs)
 
-    def build(self, input_shape):
         self.p_proj = layers.Dense(
             units=self.units, activation=self.activation,
             **self.extra_args
         )
-        self.normalize_01 = layers.LayerNormalization(epsilon=self.epsilon)
-        self.normalize_02 = layers.LayerNormalization(epsilon=self.epsilon)
+        self.normalize_01 = layers.LayerNormalization(axis=-1, epsilon=self.epsilon)
+        self.normalize_02 = layers.LayerNormalization(axis=-1, epsilon=self.epsilon)
+
+    def build(self, input_shape):
+        p_shape = list(input_shape[:-1]) + [self.degree * input_shape[-1]]
+        new_shape = list(input_shape[:-1]) + [self.units]
+        self.p_proj.build(p_shape)
+        self.normalize_01.build(input_shape)
+        self.normalize_02.build(new_shape)
 
     def p_features(self, x):
         self.features = [x]
-        for degree in range(1, self.degree + 1):
+        for degree in range(2, self.degree + 1):
             self.features.append(tf.pow(x, degree + 1))
         return tf.concat(self.features, axis=-1)
 
@@ -81,6 +87,7 @@ class GMPLPBlock(layers.Layer):
             bias_initializer="ones"
         )
         self.normalize = layers.LayerNormalization(
+            axis=-1,
             epsilon=self.epsilon
         )
         self.dropout = layers.Dropout(self.drop_rate)
@@ -93,6 +100,16 @@ class GMPLPBlock(layers.Layer):
             )
         else:
             self.proj = None
+
+        new_shape = list(input_shape[:-1]) + [self.units] 
+        spatial_shape = (new_shape[0], new_shape[-1], new_shape[1])
+        self.p_dense_01.build(new_shape)
+        self.p_dense_02.build(new_shape)
+        self.spatial_proj.build(spatial_shape)
+        self.normalize.build(new_shape)
+        self.dropout.build(new_shape)
+        if self.units != input_shape[1]:
+            self.proj.build(input_shape)
 
     def spatial_gating_unit(self, x):
         u, g = keras.ops.split(x, indices_or_sections=2, axis=-1)

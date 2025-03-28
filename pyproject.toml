@@ -1,6 +1,6 @@
 [project]
 name = "kdl-pre-built"
-version = "0.1.0"
+version = "0.1.1"
 description = "Nothing"
 authors = [
     {name = "hvn-ai",email = "hoangvannamai@gmail.com"}
